@@ -153,7 +153,7 @@ mae = mean_absolute_error(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
 print(f"Optimized XGBoost R2 Score: {r2:.4f}")
 print(f"MAE: {mae:,.2f}")
-print(f"MSE: {mse:,.2f}")
+print(f"MSE: {mse:,.2f} \n")
 
 # ------------------------------------------------------------------------------
 # 4) VISUALIZATIONS
@@ -258,3 +258,69 @@ PartialDependenceDisplay.from_estimator(
 plt.suptitle(f"Partial Dependence Plots for Top {top_n} Features")
 plt.tight_layout()
 plt.show()
+
+
+# ------------------------------------------------------------------------------
+# 5) PREDICTING NEW PROPERTY PRICES (EXAMPLES)
+# ------------------------------------------------------------------------------
+"""
+Examples: Predicting the prices of multiple new properties using the trained model.
+"""
+
+# Define multiple new properties with sample features (adjust values as needed)
+new_properties = pd.DataFrame([
+    {
+        "beds": 3,
+        "size": 850,  # sqft
+        "maint": 250,  # Monthly maintenance fee
+        "D_mkt": 20,   # Days on market
+        "DEN": 1,      # Has a den (1 = Yes, 0 = No)
+        "parking": 1,  # Has parking (1 = Yes, 0 = No)
+        "building_age": 15,
+        "ward_2": 0, "ward_3": 1, "ward_4": 0,  # Example one-hot encoded ward
+        "exposure_S": 1, "exposure_E": 0, "exposure_W": 0  # Example exposure encoding
+    },
+    {
+        "beds": 2,
+        "size": 650,
+        "maint": 180,
+        "D_mkt": 45,
+        "DEN": 0,
+        "parking": 0,
+        "building_age": 8,
+        "ward_2": 1, "ward_3": 0, "ward_4": 0,
+        "exposure_S": 0, "exposure_E": 1, "exposure_W": 0
+    },
+    {
+        "beds": 4,
+        "size": 1200,
+        "maint": 300,
+        "D_mkt": 10,
+        "DEN": 1,
+        "parking": 1,
+        "building_age": 25,
+        "ward_2": 0, "ward_3": 0, "ward_4": 1,
+        "exposure_S": 0, "exposure_E": 0, "exposure_W": 1
+    }
+])
+
+# Ensure all columns exist in new_properties (align with X_train's columns)
+missing_cols = set(X.columns) - set(new_properties.columns)
+for col in missing_cols:
+    new_properties[col] = 0  # Fill missing categorical columns with 0
+
+# Reorder columns to match X_train
+new_properties = new_properties[X.columns]
+
+# Impute missing values if any
+new_properties_imputed = imputer.transform(new_properties)
+
+# Scale the features
+new_properties_scaled = scaler.transform(new_properties_imputed)
+
+# Make predictions
+predicted_prices = best_model.predict(new_properties_scaled)
+
+# Display results
+for i, price in enumerate(predicted_prices):
+    print(f"Predicted Price for Property {i+1}: ${price:,.2f}")
