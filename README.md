@@ -58,6 +58,4 @@ Predicted Price for Property 3: $1,100,000.00
 ## License
 This project is licensed under the **MIT License**.
 
----
-Feel free to modify and improve the project! 🚀
 
